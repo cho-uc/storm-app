@@ -1,0 +1,40 @@
+version: '3.1'
+
+services:
+  zookeeper:
+    image: zookeeper
+    container_name: zookeeper
+    restart: always
+
+  nimbus:
+    image: storm
+    container_name: nimbus
+    # command: storm nimbus
+    command:
+      - /bin/sh
+      - -c
+      - |
+        storm ui > /dev/null 2>&1 &
+        storm nimbus
+    volumes: 
+      - /home/hapu/Documents/my-storm-app-local:/home/mynimbus
+    depends_on:
+      - zookeeper
+    links:
+      - zookeeper
+    restart: always
+    ports:
+      - 6627:6627
+      - 8080:8080
+
+  supervisor:
+    image: storm
+    container_name: supervisor
+    command: storm supervisor
+    depends_on:
+      - nimbus
+      - zookeeper
+    links:
+      - nimbus
+      - zookeeper
+    restart: always
